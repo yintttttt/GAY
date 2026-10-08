@@ -1,0 +1,2162 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>珂樂芙（Clove）｜永不退場的挑釁者 - 3D 鐳射傳奇卡牌工坊</title>
+  <meta name="description" content="VALORANT 珂樂芙（Clove）專屬 3D 鐳射全息反光 TCG 傳奇典藏卡牌展示工坊，具備 3D 陀螺儀視差、Rainbow Secret 極光全息濾鏡與即時鑄造編輯面板。">
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800;900&family=Noto+Sans+TC:wght@400;600;700;900&family=Orbitron:wght@600;800;900&family=Outfit:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <!-- html2canvas for Ultra-HD PNG Export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <style>
+    /* ==========================================================================
+       CSS Variables & Theme Design Tokens
+       ========================================================================== */
+    :root {
+      --bg-dark: #07060c;
+      --bg-surface: #0f0d1b;
+      --bg-glass: rgba(18, 15, 34, 0.72);
+      --bg-glass-border: rgba(168, 85, 247, 0.28);
+      
+      /* Clove Custom Palette */
+      --c-clove-purple: #9333ea;
+      --c-clove-violet: #a855f7;
+      --c-clove-glow: #c084fc;
+      --c-clove-lime: #22c55e;
+      --c-clove-lime-glow: #4ade80;
+      --c-clove-neon-acid: #10b981;
+      --c-clove-magenta: #f43f5e;
+      --c-clove-indigo: #4f46e5;
+      --c-clove-dark: #0a0814;
+      --c-gold: #fbbf24;
+      --c-gold-shine: #fef08a;
+
+      /* Dynamic Holo Foil Variables (controlled by JS) */
+      --pointer-x: 50%;
+      --pointer-y: 50%;
+      --pointer-from-center: 0;
+      --card-opacity: 0;
+      --rotate-x: 0deg;
+      --rotate-y: 0deg;
+      --glare-opacity: 0.65;
+      --foil-angle: 135deg;
+      --bg-pos-x: 50%;
+      --bg-pos-y: 50%;
+
+      /* Fonts */
+      --font-tc: 'Noto Sans TC', sans-serif;
+      --font-title: 'Cinzel', 'Noto Sans TC', serif;
+      --font-tech: 'Orbitron', 'Outfit', sans-serif;
+      --font-body: 'Outfit', 'Noto Sans TC', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 15% 20%, rgba(147, 51, 234, 0.22) 0%, transparent 45%),
+        radial-gradient(circle at 85% 80%, rgba(34, 197, 94, 0.18) 0%, transparent 45%),
+        radial-gradient(circle at 50% 50%, rgba(10, 8, 20, 0.95) 0%, #050409 100%),
+        repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.015) 0, rgba(255, 255, 255, 0.015) 1px, transparent 1px, transparent 12px);
+      color: #f1f5f9;
+      font-family: var(--font-body);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      perspective: 1200px;
+    }
+
+    /* Ambient animated soul smoke / butterfly dust in background */
+    .ambient-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.7;
+    }
+
+    /* Header Nav */
+    header {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      border-bottom: 1px solid rgba(168, 85, 247, 0.18);
+      background: rgba(10, 8, 20, 0.65);
+      backdrop-filter: blur(12px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .brand-logo-icon {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, var(--c-clove-purple), var(--c-clove-lime));
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      box-shadow: 0 0 16px rgba(168, 85, 247, 0.6);
+    }
+
+    .brand-logo-icon svg {
+      width: 20px;
+      height: 20px;
+      fill: #fff;
+    }
+
+    .brand-title {
+      font-family: var(--font-tech);
+      font-size: 1.15rem;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      background: linear-gradient(90deg, #fff, #c084fc, #4ade80);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-badge {
+      font-family: var(--font-tech);
+      font-size: 0.7rem;
+      padding: 0.2rem 0.5rem;
+      background: rgba(34, 197, 94, 0.15);
+      border: 1px solid rgba(34, 197, 94, 0.4);
+      color: #86efac;
+      border-radius: 999px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+    }
+
+    .btn-icon {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(168, 85, 247, 0.25);
+      color: #e2e8f0;
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-icon:hover {
+      background: rgba(168, 85, 247, 0.2);
+      border-color: var(--c-clove-violet);
+      color: #fff;
+      box-shadow: 0 0 12px rgba(168, 85, 247, 0.4);
+      transform: translateY(-1px);
+    }
+
+    /* Main Container (Two-Column Responsive RWD) */
+    .app-workspace {
+      position: relative;
+      z-index: 2;
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 440px;
+      gap: 2.5rem;
+      max-width: 1560px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 2rem 2.5rem 3rem;
+      align-items: center;
+    }
+
+    /* ==========================================================================
+       LEFT: 3D Card Interactive Stage
+       ========================================================================== */
+    .stage-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      min-height: 680px;
+      user-select: none;
+    }
+
+    /* Ambient Card Glow Behind */
+    .stage-glow {
+      position: absolute;
+      width: 380px;
+      height: 520px;
+      background: radial-gradient(circle, rgba(168, 85, 247, 0.35) 0%, rgba(34, 197, 94, 0.25) 50%, transparent 75%);
+      filter: blur(65px);
+      pointer-events: none;
+      z-index: 1;
+      transition: opacity 0.5s ease, transform 0.3s ease;
+      transform: translate3d(calc((var(--pointer-x) - 50%) * 0.3px), calc((var(--pointer-y) - 50%) * 0.3px), 0);
+    }
+
+    .stage-glow.ghost-mode {
+      background: radial-gradient(circle, rgba(34, 197, 94, 0.45) 0%, rgba(99, 102, 241, 0.35) 45%, transparent 80%);
+      filter: blur(75px);
+    }
+
+    /* Card Wrapper (Perspective Anchor) */
+    .card-scene {
+      position: relative;
+      z-index: 3;
+      perspective: 1200px;
+      width: min(88vw, 385px);
+      aspect-ratio: 63 / 88;
+      cursor: grab;
+      touch-action: none;
+    }
+
+    .card-scene:active {
+      cursor: grabbing;
+    }
+
+    /* 3D Transform Object */
+    .card-3d-box {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      border-radius: 18px;
+      transform: rotateX(var(--rotate-x)) rotateY(var(--rotate-y));
+      transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1);
+      box-shadow: 
+        0 20px 45px -10px rgba(0, 0, 0, 0.8),
+        0 0 35px -5px rgba(147, 51, 234, 0.4);
+    }
+
+    .card-3d-box.flipping {
+      transition: transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .card-3d-box.is-flipped {
+      transform: rotateX(var(--rotate-x)) rotateY(calc(var(--rotate-y) + 180deg));
+    }
+
+    /* Common Card Face Styling */
+    .card-face {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 18px;
+      backface-visibility: hidden;
+      overflow: hidden;
+      background: #0d0a1a;
+      border: 2px solid rgba(168, 85, 247, 0.4);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ==========================================================================
+       CARD FRONT: VALORANT Clove Legendary Layout
+       ========================================================================== */
+    .card-face.front {
+      background: radial-gradient(circle at 50% 30%, #17122b 0%, #0a0815 100%);
+      padding: 9px;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+    }
+
+    /* Outer Metallic Bezel */
+    .card-bezel {
+      flex: 1;
+      border-radius: 12px;
+      border: 1.5px solid rgba(192, 132, 252, 0.5);
+      background: linear-gradient(175deg, rgba(20, 16, 36, 0.95) 0%, rgba(10, 8, 20, 0.98) 100%);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+      box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8);
+    }
+
+    /* Card Header: Tier, Name, Energy, HP */
+    .card-header {
+      padding: 4px 8px 3px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: linear-gradient(90deg, rgba(147, 51, 234, 0.25) 0%, rgba(34, 197, 94, 0.15) 100%);
+      border-bottom: 1px solid rgba(168, 85, 247, 0.35);
+      position: relative;
+      z-index: 5;
+      flex-shrink: 0;
+    }
+
+    .header-left {
+      display: flex;
+      flex-direction: column;
+      gap: 0px;
+    }
+
+    .card-stage-tag {
+      font-family: var(--font-tech);
+      font-size: clamp(0.48rem, 1.5cqi, 0.55rem);
+      font-weight: 800;
+      color: #a7f3d0;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .card-stage-tag::before {
+      content: '◆';
+      color: var(--c-clove-lime);
+      font-size: 0.45rem;
+    }
+
+    .card-character-name {
+      font-family: var(--font-title);
+      font-weight: 900;
+      font-size: clamp(0.82rem, 3cqi, 0.96rem);
+      line-height: 1.1;
+      color: #fff;
+      text-shadow: 0 0 8px rgba(168, 85, 247, 0.7);
+      display: flex;
+      align-items: baseline;
+      gap: 3px;
+      outline: none;
+    }
+
+    .card-character-name .subtitle {
+      font-size: 0.65em;
+      font-weight: 600;
+      color: #c084fc;
+      font-family: var(--font-tc);
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .energy-badge {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      background: rgba(147, 51, 234, 0.35);
+      border: 1px solid rgba(192, 132, 252, 0.6);
+      padding: 1px 4px;
+      border-radius: 4px;
+    }
+
+    .energy-icon {
+      color: #facc15;
+      font-size: 0.65rem;
+    }
+
+    .energy-val {
+      font-family: var(--font-tech);
+      font-weight: 800;
+      font-size: 0.68rem;
+      color: #fef08a;
+    }
+
+    .hp-pill {
+      display: flex;
+      align-items: baseline;
+      gap: 2px;
+      background: linear-gradient(135deg, rgba(34, 197, 94, 0.25), rgba(16, 185, 129, 0.15));
+      border: 1px solid rgba(52, 211, 153, 0.6);
+      padding: 1px 5px;
+      border-radius: 5px;
+      box-shadow: 0 0 6px rgba(34, 197, 94, 0.3);
+    }
+
+    .hp-label {
+      font-family: var(--font-tech);
+      font-size: 0.52rem;
+      font-weight: 800;
+      color: #6ee7b7;
+    }
+
+    .hp-number {
+      font-family: var(--font-tech);
+      font-size: clamp(0.82rem, 3.2cqi, 0.95rem);
+      font-weight: 900;
+      color: #fff;
+      text-shadow: 0 0 8px rgba(74, 222, 128, 0.8);
+      outline: none;
+    }
+
+    /* ==========================================================================
+       Illustration Window (占卡面約 3/4 空間)
+       ========================================================================== */
+    .card-art-box {
+      position: relative;
+      width: 100%;
+      height: 72%;
+      flex-shrink: 0;
+      overflow: hidden;
+      background: 
+        radial-gradient(circle at 50% 40%, rgba(147, 51, 234, 0.45) 0%, rgba(34, 197, 94, 0.22) 40%, rgba(10, 8, 22, 0.98) 75%),
+        repeating-radial-gradient(circle at 50% 50%, rgba(168, 85, 247, 0.08) 0, rgba(168, 85, 247, 0.08) 12px, transparent 12px, transparent 24px),
+        #0b0817;
+      border-bottom: 1.5px solid rgba(168, 85, 247, 0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card-art-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      transform: scale(1.18) translateY(1%);
+      filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.85)) drop-shadow(0 0 18px rgba(168, 85, 247, 0.5));
+      transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.4s ease;
+      pointer-events: none;
+    }
+
+    .card-art-box:hover .card-art-img {
+      transform: scale(1.24) translateY(0);
+      filter: drop-shadow(0 14px 28px rgba(0, 0, 0, 0.95)) drop-shadow(0 0 28px rgba(74, 222, 128, 0.7));
+    }
+
+    /* Soul Energy Overlay Effect inside Illustration */
+    .soul-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(circle at 75% 75%, rgba(34, 197, 94, 0.22) 0%, transparent 60%),
+                  radial-gradient(circle at 25% 30%, rgba(168, 85, 247, 0.2) 0%, transparent 60%);
+      mix-blend-mode: screen;
+      z-index: 2;
+    }
+
+    /* Trait / Passive Banner (死生與共) - 緊湊精緻化 */
+    .passive-banner {
+      background: linear-gradient(90deg, rgba(34, 197, 94, 0.26) 0%, rgba(147, 51, 234, 0.32) 100%);
+      border-top: 1px solid rgba(52, 211, 153, 0.35);
+      border-bottom: 1px solid rgba(168, 85, 247, 0.35);
+      padding: 2px 7px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      position: relative;
+      z-index: 5;
+      flex-shrink: 0;
+    }
+
+    .passive-tag {
+      background: #059669;
+      color: #fff;
+      font-size: 0.46rem;
+      font-weight: 800;
+      padding: 0.5px 3px;
+      border-radius: 2px;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+
+    .passive-title {
+      font-size: 0.58rem;
+      font-weight: 800;
+      color: #86efac;
+      letter-spacing: 0.02em;
+      outline: none;
+      white-space: nowrap;
+    }
+
+    .passive-desc {
+      font-size: 0.46rem;
+      color: #cbd5e1;
+      line-height: 1.15;
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      outline: none;
+    }
+
+    /* ==========================================================================
+       Card Body: Moves & Ultimate (下半部緊湊文字規格)
+       ========================================================================== */
+    .card-moves-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-evenly;
+      padding: 2px 6px;
+      gap: 2px;
+      background: rgba(12, 10, 24, 0.94);
+      position: relative;
+      z-index: 5;
+      min-height: 0;
+    }
+
+    .move-row {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 4px;
+      align-items: center;
+      padding: 1.5px 4px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 4px;
+      border-left: 2px solid transparent;
+      transition: background 0.2s;
+    }
+
+    .move-row:hover {
+      background: rgba(168, 85, 247, 0.12);
+    }
+
+    .move-row.move-buff {
+      border-left-color: var(--c-clove-lime);
+    }
+
+    .move-row.move-debuff {
+      border-left-color: var(--c-clove-violet);
+    }
+
+    .move-row.move-smoke {
+      border-left-color: #6366f1;
+    }
+
+    .move-row.move-ult {
+      border-left: 2.5px solid #f59e0b;
+      background: linear-gradient(90deg, rgba(245, 158, 11, 0.12) 0%, rgba(147, 51, 234, 0.12) 100%);
+      box-shadow: inset 0 0 6px rgba(245, 158, 11, 0.08);
+    }
+
+    .move-cost {
+      display: flex;
+      gap: 0.5px;
+      font-size: 0.5rem;
+      color: #facc15;
+      text-shadow: 0 0 3px rgba(250, 204, 21, 0.6);
+      min-width: 18px;
+    }
+
+    .move-detail {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      gap: 0px;
+    }
+
+    .move-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      line-height: 1.1;
+    }
+
+    .move-name {
+      font-family: var(--font-title);
+      font-weight: 800;
+      font-size: clamp(0.56rem, 2cqi, 0.64rem);
+      color: #f8fafc;
+      letter-spacing: 0.02em;
+      outline: none;
+      white-space: nowrap;
+    }
+
+    .move-type-tag {
+      font-size: 0.42rem;
+      padding: 0px 2px;
+      border-radius: 2px;
+      background: rgba(255, 255, 255, 0.08);
+      color: #94a3b8;
+      white-space: nowrap;
+    }
+
+    .move-desc {
+      font-size: clamp(0.44rem, 1.5cqi, 0.48rem);
+      color: #94a3b8;
+      line-height: 1.15;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 1;
+      -webkit-box-orient: vertical;
+      outline: none;
+    }
+
+    .move-power {
+      font-family: var(--font-tech);
+      font-weight: 900;
+      font-size: clamp(0.64rem, 2.2cqi, 0.74rem);
+      color: #f8fafc;
+      min-width: 16px;
+      text-align: right;
+      text-shadow: 0 0 4px rgba(255, 255, 255, 0.4);
+      outline: none;
+    }
+
+    .move-row.move-ult .move-power {
+      color: #fbbf24;
+      text-shadow: 0 0 6px rgba(251, 191, 36, 0.7);
+    }
+
+    /* ==========================================================================
+       Footer: Weakness, Resistance, Retreat, Copyright & Security Mark (緊湊規格)
+       ========================================================================== */
+    .card-footer {
+      padding: 2px 6px 3px;
+      background: #090713;
+      border-top: 1px solid rgba(168, 85, 247, 0.25);
+      position: relative;
+      z-index: 5;
+      flex-shrink: 0;
+    }
+
+    .combat-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      font-size: 0.46rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      padding-bottom: 1.5px;
+      margin-bottom: 1.5px;
+      text-align: center;
+    }
+
+    .stat-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0px;
+    }
+
+    .stat-label {
+      color: #64748b;
+      font-size: 0.38rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .stat-value {
+      font-family: var(--font-tech);
+      font-weight: 800;
+      color: #e2e8f0;
+      font-size: 0.46rem;
+      outline: none;
+    }
+
+    .meta-credits {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.40rem;
+      color: #64748b;
+      font-family: var(--font-tech);
+      line-height: 1.1;
+    }
+
+    .meta-left {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      outline: none;
+    }
+
+    .rarity-stars {
+      color: #fbbf24;
+      letter-spacing: 0.5px;
+      font-size: 0.44rem;
+      text-shadow: 0 0 4px rgba(251, 191, 36, 0.7);
+    }
+
+    .meta-right {
+      text-align: right;
+      color: #475569;
+      outline: none;
+    }
+
+    /* ==========================================================================
+       HOLOGRAPHIC FOIL & GLARE SHADERS (The WOW Factor)
+       ========================================================================== */
+    .card-foil,
+    .card-glare,
+    .card-particles {
+      position: absolute;
+      inset: 0;
+      border-radius: 16px;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    /* Glare (Specular Highlight) */
+    .card-glare {
+      background: radial-gradient(
+        circle 280px at var(--pointer-x) var(--pointer-y),
+        rgba(255, 255, 255, 0.55) 0%,
+        rgba(255, 255, 255, 0.15) 30%,
+        transparent 65%
+      );
+      mix-blend-mode: overlay;
+      opacity: var(--glare-opacity);
+      transition: opacity 0.3s ease;
+    }
+
+    /* Dynamic Holo Foil Styles */
+    .card-foil {
+      mix-blend-mode: color-dodge;
+      opacity: 0.75;
+      transition: opacity 0.3s ease;
+    }
+
+    /* 1. Rainbow Secret (預設: 極光全息) */
+    .style-rainbow .card-foil {
+      background-image: 
+        repeating-linear-gradient(
+          var(--foil-angle),
+          rgba(168, 85, 247, 0.45) 0%,
+          rgba(34, 197, 94, 0.45) 15%,
+          rgba(59, 130, 246, 0.45) 30%,
+          rgba(236, 72, 153, 0.45) 45%,
+          rgba(250, 204, 21, 0.4) 60%,
+          rgba(34, 197, 94, 0.45) 75%,
+          rgba(168, 85, 247, 0.45) 100%
+        ),
+        radial-gradient(
+          circle 300px at var(--pointer-x) var(--pointer-y),
+          rgba(255, 255, 255, 0.6) 0%,
+          transparent 70%
+        );
+      background-size: 250% 250%, 100% 100%;
+      background-position: var(--bg-pos-x) var(--bg-pos-y), 0 0;
+    }
+
+    /* 2. Cosmos Holo (宇宙彩虹) */
+    .style-cosmos .card-foil {
+      background-image: 
+        radial-gradient(circle 8px at 20% 30%, rgba(255,255,255,0.9), transparent),
+        radial-gradient(circle 6px at 80% 25%, rgba(255,255,255,0.8), transparent),
+        radial-gradient(circle 10px at 45% 70%, rgba(255,255,255,0.95), transparent),
+        radial-gradient(circle 7px at 70% 85%, rgba(255,255,255,0.85), transparent),
+        radial-gradient(circle 12px at 15% 75%, rgba(255,255,255,0.9), transparent),
+        linear-gradient(
+          var(--foil-angle),
+          rgba(236, 72, 153, 0.4) 0%,
+          rgba(99, 102, 241, 0.5) 25%,
+          rgba(16, 185, 129, 0.45) 50%,
+          rgba(245, 158, 11, 0.5) 75%,
+          rgba(236, 72, 153, 0.4) 100%
+        );
+      background-size: 150px 150px, 180px 180px, 160px 160px, 140px 140px, 170px 170px, 300% 300%;
+      background-position: var(--bg-pos-x) var(--bg-pos-y);
+    }
+
+    /* 3. Gold Ultra (黑金浮雕) */
+    .style-gold .card-foil {
+      mix-blend-mode: screen;
+      background-image: 
+        linear-gradient(
+          var(--foil-angle),
+          rgba(251, 191, 36, 0.6) 0%,
+          rgba(254, 240, 138, 0.8) 20%,
+          rgba(180, 83, 9, 0.3) 40%,
+          rgba(251, 191, 36, 0.7) 60%,
+          rgba(254, 240, 138, 0.85) 80%,
+          rgba(217, 119, 6, 0.4) 100%
+        ),
+        radial-gradient(circle at var(--pointer-x) var(--pointer-y), rgba(255, 230, 120, 0.7) 0%, transparent 60%);
+      background-size: 200% 200%, 100% 100%;
+      background-position: var(--bg-pos-x) var(--bg-pos-y), 0 0;
+    }
+
+    /* 4. Silver Phantom (冷冽銀鏡) */
+    .style-silver .card-foil {
+      mix-blend-mode: overlay;
+      background-image: 
+        linear-gradient(
+          var(--foil-angle),
+          rgba(241, 245, 249, 0.7) 0%,
+          rgba(148, 163, 184, 0.2) 25%,
+          rgba(255, 255, 255, 0.85) 50%,
+          rgba(148, 163, 184, 0.2) 75%,
+          rgba(241, 245, 249, 0.7) 100%
+        ),
+        radial-gradient(circle at var(--pointer-x) var(--pointer-y), rgba(255, 255, 255, 0.9) 0%, transparent 55%);
+      background-size: 200% 200%, 100% 100%;
+      background-position: var(--bg-pos-x) var(--bg-pos-y), 0 0;
+    }
+
+    /* Floating Parallax Depth Layers (translateZ) */
+    .card-header {
+      transform: translateZ(28px);
+    }
+    .passive-banner {
+      transform: translateZ(22px);
+    }
+    .move-row {
+      transform: translateZ(25px);
+    }
+    .card-footer {
+      transform: translateZ(20px);
+    }
+    .hp-pill {
+      transform: translateZ(35px);
+    }
+
+    /* Ghost Form / Death State Styling */
+    .card-3d-box.ghost-state .card-bezel {
+      border-color: rgba(34, 197, 94, 0.8);
+      box-shadow: 0 0 25px rgba(34, 197, 94, 0.5), inset 0 0 20px rgba(16, 185, 129, 0.3);
+    }
+    .card-3d-box.ghost-state .card-art-img {
+      filter: saturate(1.4) hue-rotate(-20deg) brightness(1.1);
+    }
+    .card-3d-box.ghost-state .hp-number {
+      color: #4ade80;
+      text-shadow: 0 0 12px #22c55e;
+    }
+
+    /* ==========================================================================
+       CARD BACK: VALORANT Legend Obsidian & Gold Runes
+       ========================================================================== */
+    .card-face.back {
+      transform: rotateY(180deg);
+      background: #090714;
+      padding: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: inset 0 0 0 1px rgba(236, 72, 153, 0.35);
+    }
+
+    .card-back-inner {
+      width: 100%;
+      height: 100%;
+      border-radius: 12px;
+      position: relative;
+      overflow: hidden;
+      border: 1.5px solid rgba(236, 72, 153, 0.6);
+      background: #06040d;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.85);
+    }
+
+    .card-back-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 30%;
+      pointer-events: none;
+      filter: contrast(1.08) saturate(1.15);
+      transition: transform 0.4s ease;
+    }
+
+    .card-back-foil {
+      position: absolute;
+      inset: 0;
+      mix-blend-mode: color-dodge;
+      opacity: 0.68;
+      background: 
+        repeating-linear-gradient(
+          calc(var(--foil-angle) + 45deg),
+          rgba(236, 72, 153, 0.35) 0%,
+          rgba(168, 85, 247, 0.35) 20%,
+          rgba(56, 189, 248, 0.45) 40%,
+          rgba(244, 114, 182, 0.35) 60%,
+          rgba(168, 85, 247, 0.35) 80%,
+          rgba(236, 72, 153, 0.35) 100%
+        ),
+        radial-gradient(
+          circle 280px at var(--pointer-x) var(--pointer-y),
+          rgba(255, 255, 255, 0.75) 0%,
+          rgba(236, 72, 153, 0.45) 35%,
+          transparent 70%
+        );
+      pointer-events: none;
+    }
+
+    /* Stage Controls Bar below Card */
+    .stage-actions-bar {
+      margin-top: 1.5rem;
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      z-index: 10;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .pill-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(18, 15, 34, 0.85);
+      border: 1px solid rgba(168, 85, 247, 0.3);
+      color: #e2e8f0;
+      padding: 0.55rem 1.15rem;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      font-family: var(--font-body);
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    .pill-btn:hover {
+      background: rgba(147, 51, 234, 0.35);
+      border-color: var(--c-clove-violet);
+      color: #fff;
+      box-shadow: 0 0 16px rgba(168, 85, 247, 0.45);
+      transform: translateY(-2px);
+    }
+
+    .pill-btn.active {
+      background: linear-gradient(135deg, var(--c-clove-purple), var(--c-clove-lime));
+      border-color: #fff;
+      color: #fff;
+      box-shadow: 0 0 20px rgba(34, 197, 94, 0.5);
+    }
+
+    .pill-btn svg {
+      width: 16px;
+      height: 16px;
+      fill: currentColor;
+    }
+
+    /* ==========================================================================
+       RIGHT: Frosted Glass Cyber-TCG Forge Panel
+       ========================================================================== */
+    .panel-section {
+      background: var(--bg-glass);
+      border: 1px solid var(--bg-glass-border);
+      border-radius: 20px;
+      padding: 1.6rem 1.8rem;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+      max-height: 86vh;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--c-clove-purple) transparent;
+      display: flex;
+      flex-direction: column;
+      gap: 1.4rem;
+    }
+
+    .panel-section::-webkit-scrollbar {
+      width: 6px;
+    }
+    .panel-section::-webkit-scrollbar-thumb {
+      background: rgba(168, 85, 247, 0.4);
+      border-radius: 4px;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 1px solid rgba(168, 85, 247, 0.2);
+      padding-bottom: 1rem;
+    }
+
+    .panel-title {
+      font-family: var(--font-tech);
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .panel-subtitle {
+      font-size: 0.8rem;
+      color: #94a3b8;
+      margin-top: 0.25rem;
+    }
+
+    /* Panel Card Group */
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .control-label {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #cbd5e1;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .control-label svg {
+      width: 14px;
+      height: 14px;
+      fill: var(--c-clove-glow);
+    }
+
+    /* Foil Selector Chips */
+    .foil-chips {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.5rem;
+    }
+
+    .foil-chip {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(168, 85, 247, 0.25);
+      border-radius: 10px;
+      padding: 0.6rem 0.75rem;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      transition: all 0.2s ease;
+    }
+
+    .foil-chip:hover {
+      background: rgba(168, 85, 247, 0.15);
+      border-color: var(--c-clove-glow);
+    }
+
+    .foil-chip.selected {
+      background: linear-gradient(135deg, rgba(147, 51, 234, 0.35), rgba(34, 197, 94, 0.25));
+      border-color: #4ade80;
+      box-shadow: 0 0 14px rgba(74, 222, 128, 0.3);
+    }
+
+    .foil-name {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .foil-sub {
+      font-size: 0.68rem;
+      color: #94a3b8;
+    }
+
+    /* Image Uploader Box */
+    .upload-zone {
+      border: 1.5px dashed rgba(168, 85, 247, 0.4);
+      border-radius: 12px;
+      padding: 1rem;
+      text-align: center;
+      background: rgba(0, 0, 0, 0.2);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .upload-zone:hover {
+      border-color: var(--c-clove-lime-glow);
+      background: rgba(34, 197, 94, 0.08);
+    }
+
+    .upload-icon {
+      width: 28px;
+      height: 28px;
+      fill: var(--c-clove-glow);
+    }
+
+    .upload-txt {
+      font-size: 0.8rem;
+      color: #cbd5e1;
+    }
+
+    .upload-hint {
+      font-size: 0.68rem;
+      color: #64748b;
+    }
+
+    /* Live Edit Quick Form */
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+
+    .input-field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .input-field label {
+      font-size: 0.72rem;
+      color: #94a3b8;
+      font-weight: 600;
+    }
+
+    .input-field input,
+    .input-field textarea {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(168, 85, 247, 0.25);
+      border-radius: 8px;
+      color: #fff;
+      padding: 0.5rem 0.65rem;
+      font-size: 0.82rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s ease;
+    }
+
+    .input-field input:focus,
+    .input-field textarea:focus {
+      border-color: var(--c-clove-lime-glow);
+      box-shadow: 0 0 10px rgba(34, 197, 94, 0.25);
+    }
+
+    /* Export Action Buttons */
+    .export-box {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      margin-top: 0.5rem;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #9333ea 0%, #22c55e 100%);
+      color: #fff;
+      font-weight: 800;
+      font-size: 0.95rem;
+      font-family: var(--font-tech);
+      border: none;
+      border-radius: 10px;
+      padding: 0.85rem 1.25rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      box-shadow: 0 6px 20px rgba(147, 51, 234, 0.45);
+      transition: all 0.25s ease;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(34, 197, 94, 0.6);
+      filter: brightness(1.1);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(168, 85, 247, 0.3);
+      color: #cbd5e1;
+      font-weight: 700;
+      font-size: 0.85rem;
+      border-radius: 10px;
+      padding: 0.65rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: all 0.2s ease;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(168, 85, 247, 0.15);
+      border-color: var(--c-clove-violet);
+      color: #fff;
+    }
+
+    /* Live Feedback Toast */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: rgba(15, 13, 27, 0.95);
+      border: 1px solid var(--c-clove-lime);
+      color: #fff;
+      padding: 0.75rem 1.25rem;
+      border-radius: 10px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 15px rgba(34, 197, 94, 0.4);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      z-index: 999;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+      pointer-events: none;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    /* ==========================================================================
+       RESPONSIVE BREAKPOINTS (Mobile & Tablet)
+       ========================================================================== */
+    @media (max-width: 1023px) {
+      .app-workspace {
+        grid-template-columns: 1fr;
+        padding: 1.5rem 1.25rem 2.5rem;
+        gap: 2rem;
+      }
+
+      .stage-section {
+        min-height: auto;
+      }
+
+      .panel-section {
+        max-height: none;
+      }
+    }
+
+    @media (max-width: 767px) {
+      header {
+        padding: 0.75rem 1rem;
+      }
+
+      .brand-title {
+        font-size: 0.95rem;
+      }
+
+      .app-workspace {
+        padding: 1rem 0.75rem 2rem;
+      }
+
+      .card-scene {
+        width: min(92vw, 350px);
+      }
+
+      .panel-section {
+        border-radius: 16px;
+        padding: 1.25rem 1rem;
+      }
+
+      .foil-chips {
+        grid-template-columns: 1fr;
+      }
+
+      .toast {
+        bottom: 1rem;
+        right: 1rem;
+        left: 1rem;
+        text-align: center;
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body class="style-rainbow">
+
+  <!-- Ambient Soul Dust Canvas -->
+  <canvas class="ambient-canvas" id="ambientCanvas"></canvas>
+
+  <!-- Top Navigation Header -->
+  <header>
+    <div class="brand">
+      <div class="brand-logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2L2 22h4l6-12 6 12h4L12 2z"/></svg>
+      </div>
+      <div>
+        <div class="brand-title">LEGENDARY TCG FORGE</div>
+      </div>
+      <span class="brand-badge">ORIGIN LEGEND</span>
+    </div>
+    <div class="header-actions">
+      <button class="btn-icon" id="btnSoundToggle" title="音效切換">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+          <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+        </svg>
+      </button>
+      <button class="btn-icon" id="btnGyroToggle" title="啟動行動端陀螺儀感應">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Dual-Column Workspace -->
+  <main class="app-workspace">
+
+    <!-- LEFT COLUMN: 3D CARD STAGE -->
+    <section class="stage-section">
+      <div class="stage-glow" id="stageGlow"></div>
+
+      <!-- 3D Interactive Card Scene -->
+      <div class="card-scene" id="cardScene">
+        <div class="card-3d-box" id="cardBox">
+          
+          <!-- ================= FRONT FACE ================= -->
+          <div class="card-face front" id="cardCaptureTarget">
+            
+            <!-- Metallic Bezel Frame -->
+            <div class="card-bezel">
+
+              <!-- Top Bar -->
+              <div class="card-header">
+                <div class="header-left">
+                  <div class="card-stage-tag" contenteditable="true" id="txtCardStage">ORIGIN LEGEND｜STAGE 3</div>
+                  <div class="card-character-name" contenteditable="true" id="txtCardName">
+                    珂樂芙（Clove）<span class="subtitle">｜永不退場的挑釁者</span>
+                  </div>
+                </div>
+                <div class="header-right">
+                  <div class="energy-badge" title="能階">
+                    <span class="energy-icon">⚡</span>
+                    <span class="energy-val" contenteditable="true" id="txtCardEnergy">8</span>
+                  </div>
+                  <div class="hp-pill">
+                    <span class="hp-label">HP</span>
+                    <span class="hp-number" contenteditable="true" id="txtCardHp">170</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Illustration Window -->
+              <div class="card-art-box">
+                <img src="clove.png" alt="珂樂芙立繪" class="card-art-img" id="cardArtImage" onerror="handleArtError(this)">
+                <div class="soul-overlay"></div>
+              </div>
+
+              <!-- Passive Trait Banner -->
+              <div class="passive-banner">
+                <span class="passive-tag">被動特性</span>
+                <span class="passive-title" contenteditable="true" id="txtPassiveName">死生與共</span>
+                <span class="passive-desc" contenteditable="true" id="txtPassiveDesc">HP歸零進入死亡狀態，仍可施展技能；時限內取得擊殺即重生！</span>
+              </div>
+
+              <!-- Moves Section -->
+              <div class="card-moves-container">
+                
+                <!-- Move 1: 拾骸 -->
+                <div class="move-row move-buff">
+                  <div class="move-cost">⚡⚡</div>
+                  <div class="move-detail">
+                    <div class="move-title-wrap">
+                      <span class="move-name" contenteditable="true" id="txtMove1Name">拾骸</span>
+                      <span class="move-type-tag">增益</span>
+                    </div>
+                    <span class="move-desc" contenteditable="true" id="txtMove1Desc">吸收亡敵靈魂碎片，短時間移速大幅提升並獲得過量生命治癒。</span>
+                  </div>
+                  <div class="move-power" contenteditable="true" id="txtMove1Power">0</div>
+                </div>
+
+                <!-- Move 2: 欺敵 -->
+                <div class="move-row move-debuff">
+                  <div class="move-cost">⚡⚡</div>
+                  <div class="move-detail">
+                    <div class="move-title-wrap">
+                      <span class="move-name" contenteditable="true" id="txtMove2Name">欺敵</span>
+                      <span class="move-type-tag">範圍減益</span>
+                    </div>
+                    <span class="move-desc" contenteditable="true" id="txtMove2Desc">投擲靈魂碎片引爆，範圍內敵方遭受衰弱（Decay），上限生命崩落。</span>
+                  </div>
+                  <div class="move-power" contenteditable="true" id="txtMove2Power">60</div>
+                </div>
+
+                <!-- Move 3: 喪鐘 -->
+                <div class="move-row move-smoke">
+                  <div class="move-cost">⚡⚡</div>
+                  <div class="move-detail">
+                    <div class="move-title-wrap">
+                      <span class="move-name" contenteditable="true" id="txtMove3Name">喪鐘</span>
+                      <span class="move-type-tag">戰術煙幕</span>
+                    </div>
+                    <span class="move-desc" contenteditable="true" id="txtMove3Desc">指定區域遮蔽視野 2 回合。★原版特權：即使處於死亡狀態仍可施放！</span>
+                  </div>
+                  <div class="move-power" contenteditable="true" id="txtMove3Power">0</div>
+                </div>
+
+                <!-- Ultimate: 還魂 -->
+                <div class="move-row move-ult">
+                  <div class="move-cost">⚡⚡⚡⚡⚡</div>
+                  <div class="move-detail">
+                    <div class="move-title-wrap">
+                      <span class="move-name" contenteditable="true" id="txtUltName">奧義｜還魂</span>
+                      <span class="move-type-tag" style="background:#b45309;color:#fff;">終極</span>
+                    </div>
+                    <span class="move-desc" contenteditable="true" id="txtUltDesc">進入死亡遊走狀態！若於期限內取得擊殺，立刻滿溢復活並恢復 100 HP！</span>
+                  </div>
+                  <div class="move-power" contenteditable="true" id="txtUltPower">0</div>
+                </div>
+
+              </div>
+
+              <!-- Combat Footer & Certifications -->
+              <div class="card-footer">
+                <div class="combat-stats">
+                  <div class="stat-col">
+                    <span class="stat-label">弱點 (WEAK)</span>
+                    <span class="stat-value" contenteditable="true" id="txtWeakness">精神／光明 ×2</span>
+                  </div>
+                  <div class="stat-col">
+                    <span class="stat-label">抗性 (RESIST)</span>
+                    <span class="stat-value" contenteditable="true" id="txtResistance">暗影／死亡 -30</span>
+                  </div>
+                  <div class="stat-col">
+                    <span class="stat-label">調度成本 (RETREAT)</span>
+                    <span class="stat-value" contenteditable="true" id="txtRetreat">⚡⚡ 2</span>
+                  </div>
+                </div>
+
+                <div class="meta-credits">
+                  <div class="meta-left" contenteditable="true" id="txtIllus">
+                    <span>Illus. spaghetti</span>
+                    <span class="rarity-stars">★★★ UR</span>
+                  </div>
+                  <div class="meta-right" contenteditable="true" id="txtCopyright">
+                    No. 001/001 SAR ｜ 2026.10.08.屁眼
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Dynamic Holographic & Glare Layers -->
+            <div class="card-foil"></div>
+            <div class="card-glare"></div>
+          </div>
+
+          <!-- ================= BACK FACE ================= -->
+          <div class="card-face back">
+            <div class="card-back-inner">
+              <img src="card_back.png" alt="傳奇卡背" class="card-back-img" onerror="handleBackError(this)">
+              <div class="card-back-foil"></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Quick Interactive Actions Bar -->
+      <div class="stage-actions-bar">
+        <button class="pill-btn" id="btnFlipCard">
+          <svg viewBox="0 0 24 24"><path d="M7.11 8.53L5.7 7.11C4.8 8.27 4.24 9.61 4.07 11h2.02c.14-.87.53-1.68 1.02-2.47zM6.09 13H4.07c.17 1.39.72 2.73 1.62 3.89l1.41-1.42c-.49-.79-.88-1.6-1.01-2.47zm10.8 4.47l1.41 1.42c.9-1.16 1.45-2.5 1.62-3.89h-2.02c-.14.87-.53 1.68-1.01 2.47zM17.91 11h2.02c-.17-1.39-.72-2.73-1.62-3.89l-1.41 1.42c.48.79.87 1.6 1.01 2.47zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
+          3D 翻轉卡背
+        </button>
+
+        <button class="pill-btn" id="btnGhostState">
+          <svg viewBox="0 0 24 24"><path d="M12 2c-4.42 0-8 3.58-8 8v10c0 .55.45 1 1 1s1-.45 1-1v-2c1.33-1 2.67-1 4 0 1.33-1 2.67-1 4 0 1.33-1 2.67-1 4 0v2c0 .55.45 1 1 1s1-.45 1-1V10c0-4.42-3.58-8-8-8zm-2.5 9c-.83 0-1.5-.67-1.5-1.5S8.67 8 9.5 8s1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 8 14.5 8s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+          生死態：生者態 / 幽魂態
+        </button>
+
+        <button class="pill-btn" id="btnResetAngle">
+          <svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
+          重置視角
+        </button>
+      </div>
+
+    </section>
+
+    <!-- RIGHT COLUMN: CONTROL & INSPECTOR PANEL -->
+    <section class="panel-section">
+      
+      <div class="panel-header">
+        <div>
+          <h2 class="panel-title">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="var(--c-clove-lime)"><path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3zm0 2.84L18 11v7h-2v-6H8v6H6v-7l6-5.16z"/></svg>
+            卡牌鑄造檢視器
+          </h2>
+          <p class="panel-subtitle">所有卡面文字皆可直接在卡片上點擊編輯</p>
+        </div>
+      </div>
+
+      <!-- 1. Holographic Foil Selector -->
+      <div class="control-group">
+        <label class="control-label">
+          <svg viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L4.35 19.4c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l1.9-1.9C9.22 19.64 10.57 20 12 20c4.97 0 9-4.03 9-9s-4.03-9-9-9zm0 15c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z"/></svg>
+          全息鐳射箔膜風格
+        </label>
+        <div class="foil-chips">
+          <div class="foil-chip selected" data-style="style-rainbow">
+            <span class="foil-name">🌈 Rainbow Secret</span>
+            <span class="foil-sub">極光全息（生死界線紫綠虹彩）</span>
+          </div>
+          <div class="foil-chip" data-style="style-cosmos">
+            <span class="foil-name">🌌 Cosmos Holo</span>
+            <span class="foil-sub">宇宙彩虹（星芒粒子折射）</span>
+          </div>
+          <div class="foil-chip" data-style="style-gold">
+            <span class="foil-name">✨ Gold Ultra</span>
+            <span class="foil-sub">黑金浮雕（曜黑金屬奢華金光）</span>
+          </div>
+          <div class="foil-chip" data-style="style-silver">
+            <span class="foil-name">❄️ Silver Phantom</span>
+            <span class="foil-sub">冷冽銀鏡（高光銀白鏡面）</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Custom Portrait Uploader -->
+      <div class="control-group">
+        <label class="control-label">
+          <svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
+          立繪替換（支援本機上傳）
+        </label>
+        <input type="file" id="fileInput" accept="image/*" style="display: none;">
+        <div class="upload-zone" id="uploadDropZone">
+          <svg class="upload-icon" viewBox="0 0 24 24"><path d="M9 16h6v-6h4l-7-7-7 7h4v6zm-4 2h14v2H5v-2z"/></svg>
+          <span class="upload-txt">點擊或拖曳自訂圖片至此</span>
+          <span class="upload-hint">支援 PNG, JPG, WEBP 即時預覽（零伺服器傳輸）</span>
+        </div>
+        <button class="btn-secondary" id="btnRestoreArt">恢復珂樂芙傳奇立繪</button>
+      </div>
+
+      <!-- 3. Realtime Inspector Synchronizer Form -->
+      <div class="control-group">
+        <label class="control-label">
+          <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+          同步參數速調
+        </label>
+        
+        <div class="form-row">
+          <div class="input-field">
+            <label>卡牌名稱</label>
+            <input type="text" id="syncName" value="珂樂芙（Clove）">
+          </div>
+          <div class="input-field">
+            <label>稱號</label>
+            <input type="text" id="syncTitle" value="永不退場的挑釁者">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="input-field">
+            <label>生命值 (HP)</label>
+            <input type="number" id="syncHp" value="170">
+          </div>
+          <div class="input-field">
+            <label>能階</label>
+            <input type="number" id="syncEnergy" value="8">
+          </div>
+        </div>
+
+        <div class="input-field">
+          <label>被動特性說明</label>
+          <input type="text" id="syncPassiveDesc" value="HP歸零進入死亡狀態，仍可施展技能；時限內取得擊殺即重生！">
+        </div>
+
+        <div class="form-row">
+          <div class="input-field">
+            <label>創作者署名</label>
+            <input type="text" id="syncIllus" value="Illus. spaghetti">
+          </div>
+          <div class="input-field">
+            <label>卡號與版權印記</label>
+            <input type="text" id="syncCopyright" value="2026.10.08.屁眼">
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Export & Download -->
+      <div class="export-box">
+        <button class="btn-primary" id="btnExportPng">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zm-6 .67l2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2v9.67z"/></svg>
+          匯出超高清 PNG 卡牌圖檔
+        </button>
+        <button class="btn-secondary" id="btnCopyJson">
+          複製卡牌鑄造規格 JSON
+        </button>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Live Toast Notification -->
+  <div class="toast" id="toast">
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="var(--c-clove-lime)"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+    <span id="toastMsg">通知訊息</span>
+  </div>
+
+  <!-- Sound & SFX Synthesizer + Interaction Logic -->
+  <script>
+    /* ==========================================================================
+       1. Web Audio API Procedural SFX Synthesizer (Zero external audio files)
+       ========================================================================== */
+    class CardAudioEngine {
+      constructor() {
+        this.ctx = null;
+        this.enabled = true;
+      }
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) {
+            this.ctx = new AudioContext();
+          }
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+      playHoloShimmer() {
+        if (!this.enabled || !this.ctx) return;
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(800 + Math.random() * 400, this.ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(1400 + Math.random() * 300, this.ctx.currentTime + 0.12);
+          gain.gain.setValueAtTime(0.04, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + 0.15);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.15);
+        } catch (e) {}
+      }
+      playFlipSwoosh() {
+        if (!this.enabled || !this.ctx) return;
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(320, this.ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(80, this.ctx.currentTime + 0.35);
+          gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + 0.35);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.35);
+        } catch (e) {}
+      }
+      playSoulBurst() {
+        if (!this.enabled || !this.ctx) return;
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(220, this.ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(660, this.ctx.currentTime + 0.25);
+          gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + 0.3);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.3);
+        } catch (e) {}
+      }
+    }
+
+    const sound = new CardAudioEngine();
+
+    /* ==========================================================================
+       2. Background Soul Dust Particles Simulation
+       ========================================================================== */
+    const canvas = document.getElementById('ambientCanvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    let canvasW, canvasH;
+
+    function resizeCanvas() {
+      canvasW = canvas.width = window.innerWidth;
+      canvasH = canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    class ButterflyParticle {
+      constructor() {
+        this.reset();
+      }
+      reset() {
+        this.x = Math.random() * canvasW;
+        this.y = Math.random() * canvasH;
+        this.size = Math.random() * 2.8 + 1.2;
+        this.speedX = (Math.random() - 0.5) * 0.8;
+        this.speedY = -(Math.random() * 0.9 + 0.3);
+        this.alpha = Math.random() * 0.6 + 0.2;
+        this.color = Math.random() > 0.45 ? '168, 85, 247' : '74, 222, 128';
+        this.phase = Math.random() * Math.PI * 2;
+      }
+      update() {
+        this.phase += 0.05;
+        this.x += this.speedX + Math.sin(this.phase) * 0.5;
+        this.y += this.speedY;
+        if (this.y < -10 || this.x < -10 || this.x > canvasW + 10) {
+          this.reset();
+          this.y = canvasH + 10;
+        }
+      }
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${this.color}, ${this.alpha})`;
+        ctx.shadowColor = `rgba(${this.color}, 0.8)`;
+        ctx.shadowBlur = 8;
+        ctx.fill();
+      }
+    }
+
+    for (let i = 0; i < 45; i++) {
+      particles.push(new ButterflyParticle());
+    }
+
+    function animateParticles() {
+      ctx.clearRect(0, 0, canvasW, canvasH);
+      particles.forEach(p => {
+        p.update();
+        p.draw();
+      });
+      requestAnimationFrame(animateParticles);
+    }
+    animateParticles();
+
+    /* ==========================================================================
+       3. 3D Parallax & Dynamic Holographic Foil Engine
+       ========================================================================== */
+    const cardScene = document.getElementById('cardScene');
+    const cardBox = document.getElementById('cardBox');
+    const stageGlow = document.getElementById('stageGlow');
+    
+    let isFlipped = false;
+    let isGhostState = false;
+    let isHovering = false;
+    let targetRotateX = 0;
+    let targetRotateY = 0;
+    let currentRotateX = 0;
+    let currentRotateY = 0;
+    let pointerX = 50;
+    let pointerY = 50;
+    let currentPointerX = 50;
+    let currentPointerY = 50;
+    let lastShimmerTime = 0;
+
+    function lerp(start, end, factor) {
+      return start + (end - start) * factor;
+    }
+
+    function updateCardTransform() {
+      // Spring smoothing interpolation
+      currentRotateX = lerp(currentRotateX, targetRotateX, 0.12);
+      currentRotateY = lerp(currentRotateY, targetRotateY, 0.12);
+      currentPointerX = lerp(currentPointerX, pointerX, 0.15);
+      currentPointerY = lerp(currentPointerY, pointerY, 0.15);
+
+      const rotateYAdjusted = isFlipped ? currentRotateY + 180 : currentRotateY;
+
+      cardBox.style.transform = `rotateX(${currentRotateX.toFixed(2)}deg) rotateY(${rotateYAdjusted.toFixed(2)}deg)`;
+      
+      const angle = (Math.atan2(currentPointerY - 50, currentPointerX - 50) * 180 / Math.PI + 180) % 360;
+      
+      // Update custom properties on cardBox
+      cardBox.style.setProperty('--pointer-x', `${currentPointerX.toFixed(1)}%`);
+      cardBox.style.setProperty('--pointer-y', `${currentPointerY.toFixed(1)}%`);
+      cardBox.style.setProperty('--foil-angle', `${angle.toFixed(1)}deg`);
+      cardBox.style.setProperty('--bg-pos-x', `${currentPointerX.toFixed(1)}%`);
+      cardBox.style.setProperty('--bg-pos-y', `${currentPointerY.toFixed(1)}%`);
+      
+      stageGlow.style.setProperty('--pointer-x', `${currentPointerX.toFixed(1)}%`);
+      stageGlow.style.setProperty('--pointer-y', `${currentPointerY.toFixed(1)}%`);
+
+      // Gentle sound chime during movement
+      const now = performance.now();
+      if (isHovering && now - lastShimmerTime > 320) {
+        const speed = Math.abs(currentRotateX - targetRotateX) + Math.abs(currentRotateY - targetRotateY);
+        if (speed > 1.2) {
+          sound.playHoloShimmer();
+          lastShimmerTime = now;
+        }
+      }
+
+      requestAnimationFrame(updateCardTransform);
+    }
+    requestAnimationFrame(updateCardTransform);
+
+    // Mouse events
+    function handlePointerMove(e) {
+      sound.init();
+      isHovering = true;
+      const rect = cardScene.getBoundingClientRect();
+      const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+      const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+      
+      if (!clientX || !clientY) return;
+
+      const x = clientX - rect.left;
+      const y = clientY - rect.top;
+
+      const px = Math.max(0, Math.min(100, (x / rect.width) * 100));
+      const py = Math.max(0, Math.min(100, (y / rect.height) * 100));
+
+      pointerX = px;
+      pointerY = py;
+
+      // Range: -22deg to +22deg
+      const maxTilt = 20;
+      targetRotateX = ((py - 50) / 50) * -maxTilt;
+      targetRotateY = ((px - 50) / 50) * maxTilt;
+    }
+
+    cardScene.addEventListener('mousemove', handlePointerMove);
+    cardScene.addEventListener('touchmove', handlePointerMove, { passive: true });
+
+    function handlePointerLeave() {
+      isHovering = false;
+      targetRotateX = 0;
+      targetRotateY = 0;
+      pointerX = 50;
+      pointerY = 50;
+    }
+
+    cardScene.addEventListener('mouseleave', handlePointerLeave);
+    cardScene.addEventListener('touchend', handlePointerLeave);
+
+    // Mobile Gyroscope Device Orientation Support
+    let gyroActive = false;
+    function handleOrientation(e) {
+      if (!e.gamma || !e.beta) return;
+      isHovering = true;
+      // Clamp gamma (-30 to +30) and beta (-30 to +30)
+      const gamma = Math.max(-30, Math.min(30, e.gamma));
+      const beta = Math.max(-30, Math.min(30, e.beta - 35)); // Natural hand holding angle
+
+      targetRotateY = gamma * 0.75;
+      targetRotateX = -beta * 0.65;
+
+      pointerX = ((gamma + 30) / 60) * 100;
+      pointerY = ((beta + 30) / 60) * 100;
+    }
+
+    const btnGyroToggle = document.getElementById('btnGyroToggle');
+    btnGyroToggle.addEventListener('click', async () => {
+      sound.init();
+      if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+        try {
+          const perm = await DeviceOrientationEvent.requestPermission();
+          if (perm === 'granted') {
+            window.addEventListener('deviceorientation', handleOrientation);
+            gyroActive = true;
+            btnGyroToggle.style.color = '#4ade80';
+            showToast('陀螺儀視差已成功啟用！');
+          } else {
+            showToast('未獲得陀螺儀感應權限');
+          }
+        } catch (err) {
+          showToast('無法存取陀螺儀裝置');
+        }
+      } else {
+        // Standard Android / Desktop test
+        window.addEventListener('deviceorientation', handleOrientation);
+        gyroActive = true;
+        btnGyroToggle.style.color = '#4ade80';
+        showToast('陀螺儀感應已啟動（請傾斜手機體驗）');
+      }
+    });
+
+    /* ==========================================================================
+       4. Card Flip, Reset & Ghost State
+       ========================================================================== */
+    const btnFlipCard = document.getElementById('btnFlipCard');
+    btnFlipCard.addEventListener('click', () => {
+      sound.init();
+      sound.playFlipSwoosh();
+      isFlipped = !isFlipped;
+      cardBox.classList.add('flipping');
+      setTimeout(() => cardBox.classList.remove('flipping'), 750);
+      btnFlipCard.classList.toggle('active', isFlipped);
+      showToast(isFlipped ? '已翻轉至傳奇卡背' : '已切換至卡牌正面');
+    });
+
+    const btnResetAngle = document.getElementById('btnResetAngle');
+    btnResetAngle.addEventListener('click', () => {
+      sound.init();
+      targetRotateX = 0;
+      targetRotateY = 0;
+      pointerX = 50;
+      pointerY = 50;
+      showToast('視角與動態光澤已重歸中心');
+    });
+
+    const btnGhostState = document.getElementById('btnGhostState');
+    btnGhostState.addEventListener('click', () => {
+      sound.init();
+      sound.playSoulBurst();
+      isGhostState = !isGhostState;
+      cardBox.classList.toggle('ghost-state', isGhostState);
+      stageGlow.classList.toggle('ghost-mode', isGhostState);
+      btnGhostState.classList.toggle('active', isGhostState);
+
+      const hpEl = document.getElementById('txtCardHp');
+      const stageEl = document.getElementById('txtCardStage');
+      if (isGhostState) {
+        hpEl.dataset.prevHp = hpEl.innerText;
+        hpEl.innerText = '0 [IMMORTAL]';
+        stageEl.innerText = 'DEATH BOUNDARY｜GHOST FORM';
+        showToast('👻 珂樂芙已進入【死生界線｜幽魂態】！仍可使用技能');
+      } else {
+        hpEl.innerText = hpEl.dataset.prevHp || '170';
+        stageEl.innerText = 'ORIGIN LEGEND｜STAGE 3';
+        showToast('✨ 珂樂芙擊殺成功，奧義還魂重生！');
+      }
+    });
+
+    /* ==========================================================================
+       5. Holographic Foil Style Switcher
+       ========================================================================== */
+    const foilChips = document.querySelectorAll('.foil-chip');
+    foilChips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        sound.init();
+        sound.playHoloShimmer();
+        foilChips.forEach(c => c.classList.remove('selected'));
+        chip.classList.add('selected');
+        
+        const styleClass = chip.getAttribute('data-style');
+        document.body.className = styleClass;
+        showToast(`已套用：${chip.querySelector('.foil-name').innerText}`);
+      });
+    });
+
+    /* ==========================================================================
+       6. Custom Image Upload via FileReader API
+       ========================================================================== */
+    const fileInput = document.getElementById('fileInput');
+    const uploadDropZone = document.getElementById('uploadDropZone');
+    const cardArtImage = document.getElementById('cardArtImage');
+    const btnRestoreArt = document.getElementById('btnRestoreArt');
+
+    uploadDropZone.addEventListener('click', () => {
+      sound.init();
+      fileInput.click();
+    });
+
+    uploadDropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadDropZone.style.borderColor = 'var(--c-clove-lime)';
+    });
+
+    uploadDropZone.addEventListener('dragleave', () => {
+      uploadDropZone.style.borderColor = 'rgba(168, 85, 247, 0.4)';
+    });
+
+    uploadDropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadDropZone.style.borderColor = 'rgba(168, 85, 247, 0.4)';
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        processUploadedImage(e.dataTransfer.files[0]);
+      }
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) {
+        processUploadedImage(e.target.files[0]);
+      }
+    });
+
+    function processUploadedImage(file) {
+      if (!file.type.startsWith('image/')) {
+        showToast('請上傳正確的圖片格式檔案');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        cardArtImage.src = event.target.result;
+        sound.playSoulBurst();
+        showToast('肖像立繪替換成功！');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    btnRestoreArt.addEventListener('click', () => {
+      sound.init();
+      cardArtImage.src = 'clove.png';
+      showToast('已恢復預設珂樂芙傳奇立繪');
+    });
+
+    // Fallback if local image fails to load
+    function handleArtError(img) {
+      img.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300"><rect fill="%2317102b" width="400" height="300"/><circle cx="200" cy="150" r="80" fill="%239333ea" opacity="0.4"/><text x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" fill="%234ade80" font-family="sans-serif" font-size="20" font-weight="bold">CLOVE ORIGIN</text></svg>';
+    }
+
+    function handleBackError(img) {
+      img.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="600" viewBox="0 0 400 600"><rect fill="%230c0818" width="400" height="600"/><rect x="20" y="20" width="360" height="560" rx="15" fill="none" stroke="%23a855f7" stroke-width="4"/><polygon points="200,180 280,300 200,420 120,300" fill="none" stroke="%2322c55e" stroke-width="6"/><circle cx="200" cy="300" r="45" fill="%239333ea" opacity="0.6"/><text x="50%25" y="52%25" dominant-baseline="middle" text-anchor="middle" fill="%23fff" font-family="sans-serif" font-size="16" font-weight="bold">VALORANT TCG</text></svg>';
+    }
+
+    /* ==========================================================================
+       7. Realtime Inspector Synchronizer (2-Way Live Sync)
+       ========================================================================== */
+    const syncName = document.getElementById('syncName');
+    const syncTitle = document.getElementById('syncTitle');
+    const syncHp = document.getElementById('syncHp');
+    const syncEnergy = document.getElementById('syncEnergy');
+    const syncPassiveDesc = document.getElementById('syncPassiveDesc');
+    const syncIllus = document.getElementById('syncIllus');
+    const syncCopyright = document.getElementById('syncCopyright');
+
+    const txtCardName = document.getElementById('txtCardName');
+    const txtCardHp = document.getElementById('txtCardHp');
+    const txtCardEnergy = document.getElementById('txtCardEnergy');
+    const txtPassiveDesc = document.getElementById('txtPassiveDesc');
+    const txtIllus = document.getElementById('txtIllus');
+    const txtCopyright = document.getElementById('txtCopyright');
+
+    function updateCardNameFromInputs() {
+      txtCardName.innerHTML = `${syncName.value}<span class="subtitle">｜${syncTitle.value}</span>`;
+    }
+
+    syncName.addEventListener('input', updateCardNameFromInputs);
+    syncTitle.addEventListener('input', updateCardNameFromInputs);
+    
+    syncHp.addEventListener('input', (e) => {
+      txtCardHp.innerText = e.target.value;
+    });
+
+    syncEnergy.addEventListener('input', (e) => {
+      txtCardEnergy.innerText = e.target.value;
+    });
+
+    syncPassiveDesc.addEventListener('input', (e) => {
+      txtPassiveDesc.innerText = e.target.value;
+    });
+
+    syncIllus.addEventListener('input', (e) => {
+      txtIllus.innerHTML = `<span>${e.target.value}</span> <span class="rarity-stars">★★★ UR</span>`;
+    });
+
+    syncCopyright.addEventListener('input', (e) => {
+      txtCopyright.innerText = `No. 001/001 SAR ｜ ${e.target.value}`;
+    });
+
+    /* ==========================================================================
+       8. High-Resolution PNG Export (html2canvas)
+       ========================================================================== */
+    const btnExportPng = document.getElementById('btnExportPng');
+    btnExportPng.addEventListener('click', async () => {
+      sound.init();
+      showToast('正在渲染高解析度卡牌 PNG，請稍候...');
+
+      const target = document.getElementById('cardCaptureTarget');
+      
+      // Temporarily normalize card transform so exported image is perfectly flat & square
+      const prevTransform = cardBox.style.transform;
+      const prevTransition = cardBox.style.transition;
+      cardBox.style.transition = 'none';
+      cardBox.style.transform = 'none';
+
+      // Temporarily hide foil overlay for crisp printing, or keep subtle
+      const foil = target.querySelector('.card-foil');
+      const glare = target.querySelector('.card-glare');
+      const prevFoilOpacity = foil.style.opacity;
+      const prevGlareOpacity = glare.style.opacity;
+      foil.style.opacity = '0.35';
+      glare.style.opacity = '0.2';
+
+      try {
+        const canvas = await html2canvas(target, {
+          scale: 3, // 3x Ultra-HD Print resolution
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: null,
+          logging: false
+        });
+
+        const link = document.createElement('a');
+        link.download = `CLOVE_TCG_CARD_${Date.now()}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        sound.playSoulBurst();
+        showToast('🎉 卡牌圖檔已成功匯出至下載資料夾！');
+      } catch (err) {
+        console.error(err);
+        showToast('匯出失敗，請確認圖片載入狀態');
+      } finally {
+        // Restore card transform
+        cardBox.style.transition = prevTransition;
+        cardBox.style.transform = prevTransform;
+        foil.style.opacity = prevFoilOpacity;
+        glare.style.opacity = prevGlareOpacity;
+      }
+    });
+
+    /* ==========================================================================
+       9. Copy Card Spec JSON
+       ========================================================================== */
+    const btnCopyJson = document.getElementById('btnCopyJson');
+    btnCopyJson.addEventListener('click', () => {
+      const cardData = {
+        name: "珂樂芙（Clove）",
+        title: "永不退場的挑釁者",
+        tier: "ORIGIN LEGEND｜STAGE 3",
+        energy: document.getElementById('txtCardEnergy').innerText.trim(),
+        hp: document.getElementById('txtCardHp').innerText.trim(),
+        attribute: "暗影綠｜生死 (紫色 × 螢光綠 × 深黑)",
+        passive: {
+          name: document.getElementById('txtPassiveName').innerText.trim(),
+          desc: document.getElementById('txtPassiveDesc').innerText.trim()
+        },
+        moves: [
+          { name: document.getElementById('txtMove1Name').innerText.trim(), cost: "2", power: document.getElementById('txtMove1Power').innerText.trim(), type: "增益" },
+          { name: document.getElementById('txtMove2Name').innerText.trim(), cost: "2", power: document.getElementById('txtMove2Power').innerText.trim(), type: "範圍減益" },
+          { name: document.getElementById('txtMove3Name').innerText.trim(), cost: "2", power: document.getElementById('txtMove3Power').innerText.trim(), type: "戰術煙幕" },
+          { name: document.getElementById('txtUltName').innerText.trim(), cost: "5", power: document.getElementById('txtUltPower').innerText.trim(), type: "奧義終極" }
+        ],
+        weakness: document.getElementById('txtWeakness').innerText.trim(),
+        resistance: document.getElementById('txtResistance').innerText.trim(),
+        retreat: document.getElementById('txtRetreat').innerText.trim(),
+        illus: "Illus. spaghetti",
+        rarity: "No. 001 ★★★ UR",
+        copyright: "2026.10.08.屁眼"
+      };
+
+      navigator.clipboard.writeText(JSON.stringify(cardData, null, 2)).then(() => {
+        sound.init();
+        sound.playHoloShimmer();
+        showToast('規格 JSON 已成功複製至剪貼簿！');
+      }).catch(() => {
+        showToast('無法複製至剪貼簿');
+      });
+    });
+
+    /* ==========================================================================
+       10. Sound Toggle & Toast Notification
+       ========================================================================== */
+    const btnSoundToggle = document.getElementById('btnSoundToggle');
+    btnSoundToggle.addEventListener('click', () => {
+      sound.enabled = !sound.enabled;
+      btnSoundToggle.style.opacity = sound.enabled ? '1' : '0.4';
+      showToast(sound.enabled ? '🔊 音效已開啟' : '🔇 音效已靜音');
+    });
+
+    let toastTimer;
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toastMsg');
+      toastMsg.innerText = msg;
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2800);
+    }
+  </script>
+</body>
+</html>
